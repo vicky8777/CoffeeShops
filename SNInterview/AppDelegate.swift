@@ -17,6 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         let viewController = ViewController(viewModel: CoffeeShopsViewModel())
         let nav = UINavigationController(rootViewController: viewController)
+        nav.view.backgroundColor = .white
+        nav.navigationBar.barTintColor = .white
+        nav.navigationBar.isTranslucent = false
+
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = nav
         window?.makeKeyAndVisible()

@@ -6,7 +6,7 @@
 //  Copyright © 2022 ServiceNow. All rights reserved.
 //
 
-struct CoffeeShop {
+struct CoffeeShop: Codable {
     let name: String
     let review: String
     let rating: Int

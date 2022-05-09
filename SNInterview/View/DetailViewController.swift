@@ -1,18 +1,20 @@
 //
-//  ViewController.swift
+//  DetailViewController.swift
 //  SNInterview
 //
-//  Copyright © 2019 ServiceNow. All rights reserved.
+//  Created by Vignesh Radhakrishnan on 06/05/22.
+//  Copyright © 2022 ServiceNow. All rights reserved.
 //
 
+import Foundation
 import UIKit
 
-final class ViewController: UIViewController {
-    
-    private let viewModel: CoffeeShopsViewModel
+final class DetailViewController: UIViewController, CentralSpinnerProtocol {
+    var centralSpinner: UIActivityIndicatorView?
+    private let viewModel: DetailViewModel
     private var tableView = UITableView()
     
-    init(viewModel: CoffeeShopsViewModel) {
+    init(viewModel: DetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -23,8 +25,26 @@ final class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Coffee Shops"
+        self.title = "Coffee Reviews"
+        initCenterSpinner()
         setupTableView()
+        fetchDetails()
+    }
+    
+    private func fetchDetails() {
+        animateCentralSpinner()
+        viewModel.fetchDetails { [weak self] result in
+            DispatchQueue.main.async {
+                self?.stopAnimatingCentralSpinner()
+                switch result {
+                case .success(_):
+                    self?.tableView.reloadData()
+                case .failure(_):
+                    // Show alert or toast
+                    break
+                }
+            }
+        }
     }
     
     private func setupTableView() {
@@ -42,33 +62,21 @@ final class ViewController: UIViewController {
         
         tableView.register(UINib(nibName: String(describing: CoffeeShopCell.self), bundle: nil), forCellReuseIdentifier: String(describing: CoffeeShopCell.self))
         tableView.dataSource = self
-        tableView.delegate = self
         tableView.tableFooterView = UIView.init(frame: .zero)
+        tableView.rowHeight = UITableView.automaticDimension
     }
 }
 
-extension ViewController : UITableViewDataSource {
+extension DetailViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.numberOfItems()
     }
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableView.automaticDimension
-    }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: CoffeeShopCell.self), for: indexPath)
-        if let cell = cell as? CoffeeShopCell {
-            cell.configureData(coffeeShop: self.viewModel.getCellViewModel(atIndex:  indexPath.row))
+        if let cell = cell as? CoffeeShopCell, let model = self.viewModel.getCellViewModel(atIndex:  indexPath.row) {
+            cell.configureData(coffeeShop: model)
         }
         return cell
-    }
-}
-
-extension ViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let vm = DetailViewModel(service: DetailService())
-        let vc = DetailViewController(viewModel: vm)
-        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
